@@ -1,24 +1,20 @@
 "use client";
-
 import React, { useState, useEffect } from 'react';
 import { Storage, Category } from '../utils/storage';
 import { Plus, Trash2, Edit3, Save, X, FolderTree } from 'lucide-react';
 
 export default function CategoriesPage() {
-    // 1. Khởi tạo state
     const [categories, setCategories] = useState<Category[]>([]);
-    const [isLoaded, setIsLoaded] = useState(false); // Dùng để kiểm soát việc load dữ liệu lần đầu
+    const [isLoaded, setIsLoaded] = useState(false); 
     const [isEditing, setIsEditing] = useState<string | null>(null);
     const [formData, setFormData] = useState({ name: '', description: '', parentId: '' });
 
-    // 2. Chỉ load dữ liệu từ LocalStorage sau khi Component đã Mount (đã lên trình duyệt)
     useEffect(() => {
         const data = Storage.getCategories();
         setCategories(data);
-        setIsLoaded(true); // Báo hiệu đã load xong để render giao diện
+        setIsLoaded(true); 
     }, []);
 
-    // 3. Hàm lưu (Thêm/Sửa)
     const handleSave = () => {
         if (!formData.name.trim()) {
             alert("Vui lòng nhập tên danh mục");
@@ -28,14 +24,12 @@ export default function CategoriesPage() {
         let updatedList: Category[];
         
         if (isEditing) {
-            // Trường hợp sửa
             updatedList = categories.map(cat => 
                 cat.CategoryId === isEditing ? { ...cat, ...formData } : cat
             );
         } else {
-            // Trường hợp thêm mới
             const newCat: Category = {
-                CategoryId: crypto.randomUUID(), // Tạo ID duy nhất không trùng lặp
+                CategoryId: crypto.randomUUID(),
                 name: formData.name,
                 description: formData.description,
                 parentId: formData.parentId
@@ -43,16 +37,12 @@ export default function CategoriesPage() {
             updatedList = [...categories, newCat];
         }
 
-        // Lưu vào LocalStorage và cập nhật giao diện
         Storage.saveCategories(updatedList);
         setCategories(updatedList);
-        
-        // Reset form
         setFormData({ name: '', description: '', parentId: '' });
         setIsEditing(null);
     };
 
-    // 4. Hàm xóa
     const handleDelete = (id: string) => {
         if (window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
             const updatedList = categories.filter(c => c.CategoryId !== id);
@@ -61,7 +51,6 @@ export default function CategoriesPage() {
         }
     };
 
-    // 5. Nếu chưa load xong dữ liệu từ LocalStorage thì không render để tránh lỗi Hydration
     if (!isLoaded) return null;
 
     return (

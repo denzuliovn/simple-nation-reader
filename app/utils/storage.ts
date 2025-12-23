@@ -1,5 +1,3 @@
-// utils/storage.ts
-
 export interface Category {
     CategoryId: string;
     name: string;

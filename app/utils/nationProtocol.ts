@@ -28,6 +28,6 @@ export function buildNationFrame(category: number, mid: number, data: number[] =
 }
 
 export const NATION_CMD = {
-  START_INVENTORY: { cat: 0x02, mid: 0x10 }, // Đọc EPC
-  STOP_INVENTORY: { cat: 0x02, mid: 0xff },  // Dừng 
+  START_INVENTORY: { cat: 0x02, mid: 0x10 }, 
+  STOP_INVENTORY: { cat: 0x02, mid: 0xff },
 };

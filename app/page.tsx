@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useMemo, useState, useEffect } from 'react';
 import { useSerialNation } from './hooks/useSerialNation';
 import { TagTable } from './components/TagTable';
@@ -160,7 +159,7 @@ export default function HomePage() {
               className="flex-1 flex flex-col items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white h-28 rounded-3xl disabled:opacity-20 transition-all shadow-xl shadow-emerald-100 active:scale-95"
             >
               <Play fill="currentColor" size={24} />
-              <span className="font-black uppercase text-[10px] tracking-widest">Bắt đầu quét</span>
+              <span className="font-black uppercase text-[10px] tracking-widest">Start scan</span>
             </button>
 
             <button 
@@ -169,7 +168,7 @@ export default function HomePage() {
               className="flex-1 flex flex-col items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white h-28 rounded-3xl disabled:opacity-20 transition-all shadow-xl shadow-rose-100 active:scale-95"
             >
               <Square fill="currentColor" size={24} />
-              <span className="font-black uppercase text-[10px] tracking-widest">Dừng lại</span>
+              <span className="font-black uppercase text-[10px] tracking-widest">Stop scan</span>
             </button>
           </div>
         </div>
@@ -180,7 +179,7 @@ export default function HomePage() {
             <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-30">
               <div className="bg-blue-600 text-white text-[10px] font-black px-5 py-2 rounded-full animate-bounce shadow-2xl flex items-center gap-2 border-2 border-white">
                 <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
-                ĐANG NHẬN TÍN HIỆU TỪ ANTENNA...
+                RECEIVING SIGNAL FROM ANTENNA...
               </div>
             </div>
           )}
@@ -191,8 +190,8 @@ export default function HomePage() {
               <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
                 <PackageSearch size={40} className="text-slate-200" />
               </div>
-              <h3 className="text-slate-400 font-black uppercase text-sm tracking-widest">Kho hàng trống</h3>
-              <p className="text-slate-300 text-xs mt-1">Kết nối cổng COM và nhấn Bắt đầu để kiểm kho</p>
+              <h3 className="text-slate-400 font-black uppercase text-sm tracking-widest">Warehouse is empty</h3>
+              <p className="text-slate-300 text-xs mt-1">Connect COM port and click Start to begin inventory</p>
             </div>
           ) : (
             <TagTable 
@@ -217,7 +216,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="hover:text-blue-400 transition-colors cursor-default">
-            RFID Lab System &copy; 2024
+            RFID Lab System &copy; 2025
           </div>
         </footer>
       </div>

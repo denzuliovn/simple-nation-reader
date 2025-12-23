@@ -1,4 +1,3 @@
-// components/TagTable.tsx
 import React, { useState } from 'react';
 import { Trash2, Box, PlusCircle, CheckCircle } from 'lucide-react';
 import { Product } from '../utils/storage';
@@ -11,7 +10,6 @@ interface Props {
 }
 
 export function TagTable({ tags, allProducts, onDeleteOne, onImport }: Props) {
-  // Lưu lựa chọn sản phẩm cho từng hàng chưa đăng ký
   const [selections, setSelections] = useState<Record<string, string>>({});
 
   return (
@@ -19,11 +17,11 @@ export function TagTable({ tags, allProducts, onDeleteOne, onImport }: Props) {
       <table className="w-full text-left border-collapse">
         <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
-            <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Sản phẩm / EPC</th>
+            <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Product / EPC</th>
             <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Antenna</th>
-            <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Số lượng</th>
-            <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Trạng thái kho</th>
-            <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Thao tác</th>
+            <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Quantity</th>
+            <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Warehouse Status</th>
+            <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Actions</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100">

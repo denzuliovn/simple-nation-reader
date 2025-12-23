@@ -1,9 +1,7 @@
-// hooks/useSerialNation.ts
 import { useState, useRef, useCallback } from 'react';
 import { buildNationFrame, NATION_CMD } from '../utils/nationProtocol';
 import { Storage, Tag } from '../utils/storage';
 
-// Định nghĩa cấu trúc dữ liệu Tag hiển thị trên UI
 export interface ScannedTag {
   epc: string;
   antenna: number;
@@ -31,7 +29,6 @@ export function useSerialNation() {
     );
   };
 
-  // --- 2. Logic Phân tích gói tin và Mapping dữ liệu ---
   const parseTagData = useCallback((frame: number[]) => {
     const mid = frame[4];
     if (mid === 0x00) {
@@ -40,12 +37,9 @@ export function useSerialNation() {
       const epc = dataPayload.slice(2, 2 + epcLen).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
       const antId = dataPayload[2 + epcLen + 2];
       
-      // --- LOGIC MAPPING CHUẨN 1-NHIỀU ---
-      const tagDb = Storage.getTags();       // Bảng chứa EPC <-> ProductId
-      const productDb = Storage.getProducts(); // Bảng chứa ProductId <-> Tên SP
-      const catDb = Storage.getCategories();   // Bảng chứa CategoryId <-> Tên Cat
-
-      // Bước 1: Tìm xem thẻ này đã được khai báo chưa
+      const tagDb = Storage.getTags();       
+      const productDb = Storage.getProducts(); 
+      const catDb = Storage.getCategories();   
       const registeredTag = tagDb.find(t => t.epc.toUpperCase() === epc);
       
       let pId = "unknown";
@@ -55,12 +49,10 @@ export function useSerialNation() {
 
       if (registeredTag) {
           pId = registeredTag.productId;
-          // Bước 2: Từ ProductId tìm ra thông tin sản phẩm
           const product = productDb.find(p => p.ProductId === pId);
           if (product) {
               productName = product.name;
               unit = product.unit;
-              // Bước 3: Tìm tên danh mục
               const cat = catDb.find(c => c.CategoryId === product.categoryId);
               categoryName = cat ? cat.name : "Chưa phân loại";
           }
@@ -87,8 +79,6 @@ export function useSerialNation() {
 }, []);
 
 
-  
-  // --- 3. Vòng lặp đọc dữ liệu (Buffer Handling) ---
   const startReading = async (reader: any) => {
     readerRef.current = reader;
     let buffer: number[] = [];
@@ -125,8 +115,6 @@ export function useSerialNation() {
     }
   };
 
-  // --- 4. Các hàm hành động ---
-
   const connect = async () => {
     try {
       const selectedPort = await (navigator as any).serial.requestPort();
@@ -148,7 +136,7 @@ export function useSerialNation() {
       return;
     }
 
-    setTags(new Map()); // Reset bảng khi bắt đầu đợt quét mới
+    setTags(new Map()); 
 
     // Tạo Bitmask cho Antenna
     let mask = 0;

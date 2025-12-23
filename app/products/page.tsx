@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from 'react';
 import { Storage, Product, Category } from '../utils/storage';
 import { Plus, Trash2, Edit3, Save, X, Package, Layers } from 'lucide-react';
@@ -70,7 +69,6 @@ export default function ProductsPage() {
         setIsEditing(null);
     };
 
-    // Tránh lỗi Hydration
     if (!isLoaded) return null;
 
     return (
