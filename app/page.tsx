@@ -88,7 +88,7 @@ export default function HomePage() {
               <div className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm">
                 <Database size={16} className="text-blue-500" />
                 <span className="text-sm font-bold text-slate-700">
-                  {displayData.length} Loại hàng hóa
+                  {displayData.length} product types  
                 </span>
               </div>
             </div>

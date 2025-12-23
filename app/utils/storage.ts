@@ -61,5 +61,21 @@ export const Storage = {
             });
             Storage.saveTags(tags);
         }
+    },  
+
+    autoAddTag: (epc: string, productId: string): boolean => {
+        const tags = JSON.parse(localStorage.getItem('rfid_tag_db') || '[]') as Tag[];
+        if (!tags.some(t => t.epc === epc)) {
+            tags.push({
+                epc: epc,
+                productId: productId,
+                tid: '',
+                status: 'Active',
+                type: 'UHF'
+            });
+            localStorage.setItem('rfid_tag_db', JSON.stringify(tags));
+            return true; 
+        }
+        return false; 
     }
 };

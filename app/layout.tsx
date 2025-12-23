@@ -13,6 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <br />
                 <div className="flex gap-4 text-sm font-medium">
                   <Link href="/" className="hover:text-blue-400 transition-colors">SCAN CARD</Link>
+                  <Link href="/auto-import" className="hover:text-blue-400 transition-colors">AUTO IMPORT</Link>
                   <Link href="/categories" className="hover:text-blue-400 transition-colors">CATEGORIES</Link>
                   <Link href="/products" className="hover:text-blue-400 transition-colors">PRODUCTS</Link>
                   <Link href="/tags" className="hover:text-blue-400 transition-colors">TAG MANAGEMENT</Link>

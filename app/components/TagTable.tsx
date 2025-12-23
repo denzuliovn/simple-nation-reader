@@ -85,7 +85,7 @@ export function TagTable({ tags, allProducts, onDeleteOne, onImport }: Props) {
                   ) : (
                     <div className="flex items-center gap-2 text-emerald-600">
                       <CheckCircle size={16} />
-                      <span className="text-[10px] font-black uppercase tracking-tighter">Đã khớp dữ liệu</span>
+                      <span className="text-[10px] font-black uppercase tracking-tighter">Data matched</span>
                     </div>
                   )}
                 </td>
