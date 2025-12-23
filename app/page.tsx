@@ -18,7 +18,7 @@ import {
 export default function HomePage() {
   const { 
     port, 
-    tags, // Map<EPC, TagData> từ Hook
+    tags, 
     isScanning, 
     selectedAntennas,
     connect, 
@@ -29,10 +29,8 @@ export default function HomePage() {
     deleteTag 
   } = useSerialNation();
 
-  // State để lưu danh sách sản phẩm phục vụ cho việc gán nhãn (Import)
   const [allProducts, setAllProducts] = useState<Product[]>([]);
 
-  // Load lại danh sách sản phẩm từ LocalStorage mỗi khi có sự thay đổi
   useEffect(() => {
     setAllProducts(Storage.getProducts());
   }, [tags, isScanning]);
@@ -40,42 +38,30 @@ export default function HomePage() {
   // Hàm xử lý Import nhanh từ bảng
   const handleImportProduct = (epc: string, productId: string) => {
     if (!productId) return;
-    
-    // Lưu vào bảng Tags trong Storage
     Storage.addTag(epc, productId);
-    
-    // Thông báo để người dùng biết
     alert(`Đã liên kết mã EPC ${epc.slice(-4)}... với sản phẩm thành công!`);
-    
-    // Sau khi lưu, lần quét tiếp theo (hoặc bấm Start lại) hệ thống sẽ tự Mapping tên
   };
 
-  // --- LOGIC GOM NHÓM (1 SẢN PHẨM - NHIỀU TAG) ---
   const displayData = useMemo(() => {
     const scannedArray = Array.from(tags.values());
     
     const groups = scannedArray.reduce((acc, tag) => {
-      // Logic xác định KEY để gom nhóm:
-      // - Nếu là thẻ UNKNOWN: Key = chính mã EPC đó (để hiện từng dòng riêng mà Import)
-      // - Nếu đã có ProductId: Key = ProductId (để gom nhiều EPC về 1 dòng Sản phẩm)
       const isUnregistered = tag.productId === "unknown";
       const key = isUnregistered ? `unreg-${tag.epc}` : tag.productId;
       
       if (!acc[key]) {
         acc[key] = {
           ...tag,
-          totalItems: 0, // Số lượng vật thể thực tế
+          totalItems: 0, 
           uniqueEpcs: new Set(),
         };
       }
       
-      // Nếu EPC này chưa xuất hiện trong nhóm sản phẩm này thì tăng số lượng
       if (!acc[key].uniqueEpcs.has(tag.epc)) {
         acc[key].uniqueEpcs.add(tag.epc);
         acc[key].totalItems += 1;
       }
 
-      // Luôn cập nhật Antenna và thời gian mới nhất cho dòng sản phẩm đó
       acc[key].lastSeen = tag.lastSeen;
       acc[key].antenna = tag.antenna;
       
@@ -96,12 +82,10 @@ export default function HomePage() {
               <Cpu className="text-blue-600" size={32} />
               NATION <span className="text-blue-600">SCANNER</span>
             </h1>
-            <p className="text-slate-500 font-medium italic">Hệ thống kiểm kê kho hàng RFID thông minh</p>
           </div>
           
           <div className="flex items-center gap-3 w-full md:w-auto">
             <div className="flex-1 md:flex-none flex flex-col items-end">
-              <span className="text-[10px] font-black text-slate-400 uppercase">Thống kê phiên quét</span>
               <div className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm">
                 <Database size={16} className="text-blue-500" />
                 <span className="text-sm font-bold text-slate-700">
@@ -130,7 +114,7 @@ export default function HomePage() {
             {/* Kết nối */}
             <div className="space-y-3">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                <Link size={14} /> Trạng thái cổng
+                <Link size={14} /> PORT status
               </span>
               <button 
                 onClick={connect} 
@@ -147,7 +131,7 @@ export default function HomePage() {
             {/* Chọn Antenna */}
             <div className="space-y-3 flex-1 min-w-[240px]">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                <Radio size={14} /> Antenna hoạt động
+                <Radio size={14} /> Antenna selection
               </span>
               <div className="flex gap-3">
                 {[1, 2, 3, 4].map(id => (
