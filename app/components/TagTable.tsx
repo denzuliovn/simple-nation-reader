@@ -69,7 +69,7 @@ export function TagTable({ tags, allProducts, onDeleteOne, onImport }: Props) {
                         value={selections[tag.epc] || ""}
                         onChange={(e) => setSelections({...selections, [tag.epc]: e.target.value})}
                       >
-                        <option value="">-- Gán sản phẩm --</option>
+                        <option value="">-- Assign product --</option>
                         {allProducts.map(p => (
                           <option key={p.ProductId} value={p.ProductId}>{p.name}</option>
                         ))}
