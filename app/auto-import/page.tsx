@@ -60,10 +60,10 @@ export default function AutoImportPage() {
       <div className="max-w-6xl mx-auto">
         
         {/* --- HEADER --- */}
-        <header className="mb-10 flex justify-between items-end border-b pb-6">
+        <header className="mb-10 flex justify-between items-end pb-6">
           <div>
             <h1 className="text-3xl font-black text-slate-800 flex items-center gap-3 tracking-tighter">
-              <Zap className="text-blue-600" fill="currentColor" size={32} />
+              <Zap className="text-blue-600" fill="currentColor" size={32} />  
               AUTO <span className="text-blue-600 uppercase">Import</span>
             </h1>
           </div>

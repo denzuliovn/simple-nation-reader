@@ -169,7 +169,7 @@ export function useSerialNation() {
     setIsScanning(false);
   };
 
-  // --- 7. CHỨC NĂNG QUAN TRỌNG: GHI EPC (Nâng cấp từ C# SDK) ---
+  // --- 7. CHỨC NĂNG QUAN TRỌNG: GHI EPC ---
   const writeEpc = async (oldEpc: string, newEpc: string, antenna: number) => {
   if (!writerRef.current) return { success: false, msg: "Chưa kết nối cổng COM" };
 
@@ -191,8 +191,6 @@ export function useSerialNation() {
 
     // Dữ liệu ghi xuống bao gồm: [2 byte PC] + [X byte EPC mới]
     const dataToWrite = [...pcBytes, ...newEpcBytes];
-
-    // --- XÂY DỰNG PAYLOAD THEO TRANG 51 & 9 CỦA TÀI LIỆU ---
     
     // a. Antenna Port (M, 4 bytes)
     const antPart = [0x00, 0x00, 0x00, (1 << (antenna - 1))];
