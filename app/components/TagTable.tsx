@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, Box, PlusCircle, CheckCircle } from 'lucide-react';
+import { Trash2, Box, PlusCircle, CheckCircle, Edit3 } from 'lucide-react';
 import { Product } from '../utils/storage';
 
 interface Props {
@@ -7,9 +7,10 @@ interface Props {
   allProducts: Product[];
   onDeleteOne: (epc: string) => void;
   onImport: (epc: string, productId: string) => void;
+  onWriteClick: (tag: any) => void; // Thêm prop mới
 }
 
-export function TagTable({ tags, allProducts, onDeleteOne, onImport }: Props) {
+export function TagTable({ tags, allProducts, onDeleteOne, onImport, onWriteClick }: Props) {
   const [selections, setSelections] = useState<Record<string, string>>({});
 
   return (
@@ -91,12 +92,22 @@ export function TagTable({ tags, allProducts, onDeleteOne, onImport }: Props) {
                 </td>
 
                 <td className="p-4 text-center">
-                  <button 
-                    onClick={() => onDeleteOne(tag.epc)}
-                    className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  <div className="flex items-center justify-center gap-1">
+                    <button 
+                      onClick={() => onWriteClick(tag)}
+                      className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                      title="Ghi lại mã EPC mới"
+                    >
+                      <Edit3 size={18} />
+                    </button>
+                    <button 
+                      onClick={() => onDeleteOne(tag.epc)}
+                      className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                      title="Xóa khỏi danh sách"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             );

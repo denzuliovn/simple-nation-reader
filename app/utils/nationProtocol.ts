@@ -1,3 +1,20 @@
+export const NATION_CMD = {
+  START_INVENTORY: { cat: 0x02, mid: 0x10 }, 
+  STOP_INVENTORY: { cat: 0x02, mid: 0xff },
+  WRITE_EPC_TAG: { cat: 0x02, mid: 0x11 }, 
+};
+
+export const MEMORY_AREA = {
+  RESERVED: 0x00,
+  EPC: 0x01,
+  TID: 0x02,
+  USER: 0x03,
+}
+
+export function getBitLength(hex: string): number {
+  return (hex.length / 2) * 8;
+}
+
 export function crc16_ccitt(data: number[]): number {
   let crc = 0x0000;
   for (const byte of data) {
@@ -13,6 +30,14 @@ export function crc16_ccitt(data: number[]): number {
   return crc;
 }
 
+export function hexToBytes(hex: string): number[] {
+  const bytes = [];
+  for (let c = 0; c < hex.length; c += 2) {
+    bytes.push(parseInt(hex.substr(c, 2), 16));
+  }
+  return bytes;
+}
+
 
 export function buildNationFrame(category: number, mid: number, data: number[] = []): Uint8Array {
   const header = 0x5a;
@@ -26,8 +51,3 @@ export function buildNationFrame(category: number, mid: number, data: number[] =
 
   return new Uint8Array([header, ...contentToCrc, ...crcBytes]);
 }
-
-export const NATION_CMD = {
-  START_INVENTORY: { cat: 0x02, mid: 0x10 }, 
-  STOP_INVENTORY: { cat: 0x02, mid: 0xff },
-};

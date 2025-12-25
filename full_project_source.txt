@@ -1,0 +1,1727 @@
+
+================================================================================
+FILE PATH: eslint.config.mjs
+================================================================================
+
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
+
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
+
+export default eslintConfig;
+
+
+================================================================================
+FILE PATH: next-env.d.ts
+================================================================================
+
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+import "./.next/dev/types/routes.d.ts";
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+
+
+================================================================================
+FILE PATH: next.config.ts
+================================================================================
+
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+
+
+================================================================================
+FILE PATH: package.json
+================================================================================
+
+{
+  "name": "simple-nation-reader",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "lucide-react": "^0.562.0",
+    "next": "16.1.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+
+
+================================================================================
+FILE PATH: postcss.config.mjs
+================================================================================
+
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
+
+export default config;
+
+
+================================================================================
+FILE PATH: tsconfig.json
+================================================================================
+
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+
+
+================================================================================
+FILE PATH: app\globals.css
+================================================================================
+
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+================================================================================
+FILE PATH: app\layout.tsx
+================================================================================
+
+import Link from 'next/link';
+import './globals.css';
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <nav className="bg-slate-900 text-white shadow-lg">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center gap-8">
+                <span className="text-xl font-black tracking-tighter text-blue-400">NEXTWAVES INDUSTRIES</span>
+                <br />
+                <div className="flex gap-4 text-sm font-medium">
+                  <Link href="/" className="hover:text-blue-400 transition-colors">SCAN CARD</Link>
+                  <Link href="/auto-import" className="hover:text-blue-400 transition-colors">AUTO IMPORT</Link>
+                  <Link href="/categories" className="hover:text-blue-400 transition-colors">CATEGORIES</Link>
+                  <Link href="/products" className="hover:text-blue-400 transition-colors">PRODUCTS</Link>
+                  <Link href="/tags" className="hover:text-blue-400 transition-colors">TAG MANAGEMENT</Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </nav>
+        {children}
+      </body>
+    </html>
+  );
+}
+
+================================================================================
+FILE PATH: app\page.tsx
+================================================================================
+
+"use client";
+import React, { useMemo, useState, useEffect } from 'react';
+import { useSerialNation } from './hooks/useSerialNation';
+import { TagTable } from './components/TagTable';
+import { Storage, Product } from './utils/storage';
+import { 
+  Radio, 
+  Play, 
+  Square, 
+  Link, 
+  Trash2, 
+  Database, 
+  Cpu,
+  PackageSearch
+} from 'lucide-react';
+
+export default function HomePage() {
+  const { 
+    port, 
+    tags, 
+    isScanning, 
+    selectedAntennas,
+    connect, 
+    startScan, 
+    stopScan, 
+    toggleAntenna, 
+    clearTags, 
+    deleteTag 
+  } = useSerialNation();
+
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    setAllProducts(Storage.getProducts());
+  }, [tags, isScanning]);
+
+  // Hàm xử lý Import nhanh từ bảng
+  const handleImportProduct = (epc: string, productId: string) => {
+    if (!productId) return;
+    Storage.addTag(epc, productId);
+    alert(`Đã liên kết mã EPC ${epc.slice(-4)}... với sản phẩm thành công!`);
+  };
+
+  const displayData = useMemo(() => {
+    const scannedArray = Array.from(tags.values());
+    
+    const groups = scannedArray.reduce((acc, tag) => {
+      const isUnregistered = tag.productId === "unknown";
+      const key = isUnregistered ? `unreg-${tag.epc}` : tag.productId;
+      
+      if (!acc[key]) {
+        acc[key] = {
+          ...tag,
+          totalItems: 0, 
+          uniqueEpcs: new Set(),
+        };
+      }
+      
+      if (!acc[key].uniqueEpcs.has(tag.epc)) {
+        acc[key].uniqueEpcs.add(tag.epc);
+        acc[key].totalItems += 1;
+      }
+
+      acc[key].lastSeen = tag.lastSeen;
+      acc[key].antenna = tag.antenna;
+      
+      return acc;
+    }, {} as Record<string, any>);
+
+    return Object.values(groups);
+  }, [tags]);
+
+  return (
+    <main className="p-4 md:p-10 bg-[#F8FAFC] min-h-screen font-sans">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* --- HEADER --- */}
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+              <Cpu className="text-blue-600" size={32} />
+              NATION <span className="text-blue-600">SCANNER</span>
+            </h1>
+          </div>
+          
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="flex-1 md:flex-none flex flex-col items-end">
+              <div className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm">
+                <Database size={16} className="text-blue-500" />
+                <span className="text-sm font-bold text-slate-700">
+                  {displayData.length} products  
+                </span>
+              </div>
+            </div>
+            
+            <button 
+              onClick={clearTags}
+              disabled={tags.size === 0}
+              className="mt-4 md:mt-0 p-3 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all border border-transparent"
+              title="Xóa kết quả quét"
+            >
+              <Trash2 size={24} />
+            </button>
+          </div>
+        </header>
+
+        {/* --- CONTROL PANEL --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">
+          
+          {/* Cổng Kết nối & Anten */}
+          <div className="lg:col-span-8 bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 flex flex-wrap items-center gap-10">
+            
+            {/* Kết nối */}
+            <div className="space-y-3">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <Link size={14} /> PORT status
+              </span>
+              <button 
+                onClick={connect} 
+                className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-xs transition-all shadow-sm ${
+                  port 
+                  ? 'bg-blue-50 text-blue-600 border border-blue-100' 
+                  : 'bg-slate-800 text-white hover:bg-slate-900 active:scale-95'
+                }`}
+              >
+                {port ? "✓ CONNECTED" : "SELECT COM PORT"}
+              </button>
+            </div>
+
+            {/* Chọn Antenna */}
+            <div className="space-y-3 flex-1 min-w-[240px]">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <Radio size={14} /> Antenna selection
+              </span>
+              <div className="flex gap-3">
+                {[1, 2, 3, 4].map(id => (
+                  <button
+                    key={id}
+                    disabled={isScanning}
+                    onClick={() => toggleAntenna(id)}
+                    className={`flex-1 h-12 rounded-2xl border-2 flex items-center justify-center transition-all text-lg font-black ${
+                      selectedAntennas.includes(id)
+                        ? 'border-blue-600 bg-blue-600 text-white shadow-lg shadow-blue-200'
+                        : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
+                    } ${isScanning ? 'opacity-40 cursor-not-allowed' : 'active:scale-90'}`}
+                  >
+                    {id}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Lệnh Quét */}
+          <div className="lg:col-span-4 bg-white p-6 rounded-[2rem] shadow-sm border border-slate-200 flex items-center gap-4">
+            <button 
+              onClick={startScan} 
+              disabled={!port || isScanning || selectedAntennas.length === 0}
+              className="flex-1 flex flex-col items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white h-28 rounded-3xl disabled:opacity-20 transition-all shadow-xl shadow-emerald-100 active:scale-95"
+            >
+              <Play fill="currentColor" size={24} />
+              <span className="font-black uppercase text-[10px] tracking-widest">Start scan</span>
+            </button>
+
+            <button 
+              onClick={stopScan} 
+              disabled={!isScanning}
+              className="flex-1 flex flex-col items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white h-28 rounded-3xl disabled:opacity-20 transition-all shadow-xl shadow-rose-100 active:scale-95"
+            >
+              <Square fill="currentColor" size={24} />
+              <span className="font-black uppercase text-[10px] tracking-widest">Stop scan</span>
+            </button>
+          </div>
+        </div>
+
+        {/* --- DANH SÁCH HIỂN THỊ --- */}
+        <div className="relative">
+          {isScanning && (
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-30">
+              <div className="bg-blue-600 text-white text-[10px] font-black px-5 py-2 rounded-full animate-bounce shadow-2xl flex items-center gap-2 border-2 border-white">
+                <div className="w-1.5 h-1.5 bg-white rounded-full animate-ping" />
+                RECEIVING SIGNAL FROM ANTENNA...
+              </div>
+            </div>
+          )}
+
+          {/* Nếu không có dữ liệu thì hiện màn hình trống */}
+          {displayData.length === 0 && !isScanning ? (
+            <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[2.5rem] border-2 border-dashed border-slate-100">
+              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
+                <PackageSearch size={40} className="text-slate-200" />
+              </div>
+              <h3 className="text-slate-400 font-black uppercase text-sm tracking-widest">Warehouse is empty</h3>
+              <p className="text-slate-300 text-xs mt-1">Connect COM port and click Start to begin inventory</p>
+            </div>
+          ) : (
+            <TagTable 
+              tags={displayData} 
+              allProducts={allProducts}
+              onDeleteOne={deleteTag}
+              onImport={handleImportProduct}
+            />
+          )}
+        </div>
+
+        {/* --- FOOTER STATUS --- */}
+        <footer className="mt-12 flex justify-between items-center text-slate-300 text-[10px] font-black uppercase tracking-[0.3em]">
+          <div className="flex gap-8">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" /> 
+              Baudrate: 115200
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" /> 
+              Protocol: Nation Hex
+            </div>
+          </div>
+          <div className="hover:text-blue-400 transition-colors cursor-default">
+            RFID Lab System &copy; 2025
+          </div>
+        </footer>
+      </div>
+    </main>
+  );
+}
+
+================================================================================
+FILE PATH: app\auto-import\page.tsx
+================================================================================
+
+"use client";
+import React, { useState, useEffect, useRef } from 'react';
+import { useSerialNation } from '../hooks/useSerialNation';
+import { Storage, Product } from '../utils/storage';
+import { 
+  Zap, 
+  Play, 
+  Square, 
+  Package, 
+  Link,
+  ChevronRight,
+  Database
+} from 'lucide-react';
+
+export default function AutoImportPage() {
+  const { 
+    port, tags, isScanning, selectedAntennas,
+    connect, startScan, stopScan, toggleAntenna, clearTags 
+  } = useSerialNation();
+
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState<string>("");
+  const [sessionLog, setSessionLog] = useState<{epc: string, status: string}[]>([]);
+  const processedEpcs = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    setAllProducts(Storage.getProducts());
+  }, []);
+
+  useEffect(() => {
+    if (isScanning && selectedProductId) {
+      const scannedEpcs = Array.from(tags.keys());
+      
+      scannedEpcs.forEach(epc => {
+        // Nếu EPC này chưa được xử lý TRONG PHIÊN NÀY
+        if (!processedEpcs.current.has(epc)) {
+          const isNew = Storage.autoAddTag(epc, selectedProductId);
+          
+          setSessionLog(prev => [{
+            epc,
+            status: isNew ? "SUCCESS" : "ALREADY EXISTS"
+          }, ...prev.slice(0, 49)]); 
+
+          processedEpcs.current.add(epc);
+        }
+      });
+    }
+  }, [tags, isScanning, selectedProductId]);
+
+  const handleStart = () => {
+    if (!selectedProductId) return alert("Please select a product first!");
+    processedEpcs.current.clear(); 
+    setSessionLog([]);
+    clearTags();
+    startScan();
+  };
+
+  return (
+    <main className="p-8 bg-[#F8FAFC] min-h-screen font-sans">
+      <div className="max-w-6xl mx-auto">
+        
+        {/* --- HEADER --- */}
+        <header className="mb-10 flex justify-between items-end border-b pb-6">
+          <div>
+            <h1 className="text-3xl font-black text-slate-800 flex items-center gap-3 tracking-tighter">
+              <Zap className="text-blue-600" fill="currentColor" size={32} />
+              AUTO <span className="text-blue-600 uppercase">Import</span>
+            </h1>
+          </div>
+
+          <div className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-2xl shadow-sm">
+             <Database size={16} className="text-blue-500" />
+             <span className="text-sm font-black text-slate-700">
+               {allProducts.length} products
+             </span>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* CỘT TRÁI: CẤU HÌNH */}
+          <div className="lg:col-span-5 space-y-6">
+            
+            {/* Block 1: Chọn sản phẩm mục tiêu */}
+            <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
+              <div className="flex items-center gap-2 mb-4 text-slate-400">
+                <Package size={16} className="font-bold" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Target Product</span>
+              </div>
+              
+              <select 
+                className="w-full p-4 border-2 border-slate-50 rounded-2xl bg-slate-50 outline-none focus:border-blue-500 focus:bg-white transition-all font-black text-slate-700 appearance-none cursor-pointer"
+                value={selectedProductId}
+                onChange={(e) => setSelectedProductId(e.target.value)}
+                disabled={isScanning}
+              >
+                <option value="">-- CHOOSE PRODUCT --</option>
+                {allProducts.map(p => (
+                  <option key={p.ProductId} value={p.ProductId}>{p.name}</option>
+                ))}
+              </select>
+
+              {selectedProductId && (
+                 <div className="mt-4 p-4 bg-blue-50 rounded-2xl border border-blue-100 flex items-center gap-3 animate-in fade-in zoom-in duration-300">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                 </div>
+              )}
+            </div>
+
+            {/* Block 2: Kết nối thiết bị */}
+            <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
+              <div className="flex items-center gap-2 mb-4 text-slate-400">
+                <Link size={16} />
+                <span className="text-[10px] font-black uppercase tracking-widest">Peripheral Devices</span>
+              </div>
+              
+              <button 
+                onClick={connect}
+                className={`w-full py-3 rounded-2xl font-black text-xs mb-4 transition-all border-2 ${
+                  port 
+                  ? 'bg-blue-50 text-blue-600 border-blue-100' 
+                  : 'bg-slate-900 text-white border-slate-900 shadow-lg'
+                }`}
+              >
+                {port ? "✓ READER IS READY" : "CONNECT COM PORT"}
+              </button>
+
+              <div className="flex gap-2">
+                {[1, 2, 3, 4].map(id => (
+                  <button
+                    key={id}
+                    onClick={() => toggleAntenna(id)}
+                    disabled={isScanning}
+                    className={`flex-1 h-12 rounded-xl border-2 font-black transition-all ${
+                      selectedAntennas.includes(id) 
+                      ? 'border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-100' 
+                      : 'border-slate-50 bg-slate-50 text-slate-300'
+                    }`}
+                  >
+                    {id}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Block 3: Hành động */}
+            <div className="flex gap-4">
+              <button 
+                onClick={handleStart}
+                disabled={!port || isScanning || !selectedProductId}
+                className="flex-1 h-24 bg-emerald-500 hover:bg-emerald-600 text-white rounded-[2rem] font-black shadow-xl shadow-emerald-100 disabled:opacity-20 flex flex-col items-center justify-center gap-2 transition-all active:scale-95"
+              >
+                <Play fill="currentColor" size={24} />
+                <span className="text-[10px] tracking-[0.2em] uppercase font-black">Start Import</span>
+              </button>
+
+              <button 
+                onClick={stopScan}
+                disabled={!isScanning}
+                className="flex-1 h-24 bg-rose-500 hover:bg-rose-600 text-white rounded-[2rem] font-black shadow-xl shadow-rose-100 disabled:opacity-20 flex flex-col items-center justify-center gap-2 transition-all active:scale-95"
+              >
+                <Square fill="currentColor" size={24} />
+                <span className="text-[10px] tracking-[0.2em] uppercase font-black">Stop Import</span>
+              </button>
+            </div>
+          </div>
+
+          {/* CỘT PHẢI: CONSOLE LOGS */}
+          <div className="lg:col-span-7">
+            <div className="bg-slate-900 rounded-[2.5rem] shadow-2xl h-[650px] flex flex-col overflow-hidden border-[6px] border-slate-800">
+              <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur-md">
+                <div className="flex items-center gap-3">
+                   <div className={`w-2 h-2 rounded-full ${isScanning ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+                   <span className="text-white font-black text-xs uppercase tracking-widest">Live Import Console</span>
+                </div>
+                <span className="bg-blue-600 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">
+                  {isScanning ? 'Status: Processing' : 'Status: Standby'}
+                </span>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-6 space-y-3 font-mono">
+                {sessionLog.length === 0 && (
+                  <div className="h-full flex flex-col items-center justify-center text-slate-700 italic text-sm">
+                    <Zap size={48} className="mb-4 opacity-10" />
+                    <p className="font-black uppercase tracking-widest opacity-20">Waiting for RFID signals...</p>
+                  </div>
+                )}
+                {sessionLog.map((log, i) => (
+                  <div key={i} className="flex items-center justify-between bg-slate-800/40 p-4 rounded-2xl border border-slate-700/30 group animate-in slide-in-from-left duration-300">
+                    <div className="flex items-center gap-4">
+                      <div className="text-slate-600 text-[10px] font-black">{(sessionLog.length - i).toString().padStart(3, '0')}</div>
+                      <div className="text-blue-400 text-sm font-black tracking-tight">{log.epc}</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <ChevronRight size={14} className="text-slate-700" />
+                      <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border ${
+                        log.status === 'THÀNH CÔNG' 
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                        : 'bg-slate-800 text-slate-500 border-slate-700'
+                      }`}>
+                        {log.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-5 bg-slate-800/80 border-t border-slate-800 flex justify-center items-center">
+                 <div className="flex items-center gap-2">
+                    <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Total tags added:</span>
+                    <span className="text-white font-black text-lg leading-none">{processedEpcs.current.size}</span>
+                 </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Status Footer */}
+        <div className="mt-10 text-center">
+           <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.4em]">Automated RFID Mapping Logic v1.0</p>
+        </div>
+
+      </div>
+    </main>
+  );
+}
+
+================================================================================
+FILE PATH: app\categories\page.tsx
+================================================================================
+
+"use client";
+import React, { useState, useEffect } from 'react';
+import { Storage, Category } from '../utils/storage';
+import { Plus, Trash2, Edit3, Save, X, FolderTree } from 'lucide-react';
+
+export default function CategoriesPage() {
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [isLoaded, setIsLoaded] = useState(false); 
+    const [isEditing, setIsEditing] = useState<string | null>(null);
+    const [formData, setFormData] = useState({ name: '', description: '', parentId: '' });
+
+    useEffect(() => {
+        const data = Storage.getCategories();
+        setCategories(data);
+        setIsLoaded(true); 
+    }, []);
+
+    const handleSave = () => {
+        if (!formData.name.trim()) {
+            alert("Vui lòng nhập tên danh mục");
+            return;
+        }
+        
+        let updatedList: Category[];
+        
+        if (isEditing) {
+            updatedList = categories.map(cat => 
+                cat.CategoryId === isEditing ? { ...cat, ...formData } : cat
+            );
+        } else {
+            const newCat: Category = {
+                CategoryId: crypto.randomUUID(),
+                name: formData.name,
+                description: formData.description,
+                parentId: formData.parentId
+            };
+            updatedList = [...categories, newCat];
+        }
+
+        Storage.saveCategories(updatedList);
+        setCategories(updatedList);
+        setFormData({ name: '', description: '', parentId: '' });
+        setIsEditing(null);
+    };
+
+    const handleDelete = (id: string) => {
+        if (window.confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
+            const updatedList = categories.filter(c => c.CategoryId !== id);
+            Storage.saveCategories(updatedList);
+            setCategories(updatedList);
+        }
+    };
+
+    if (!isLoaded) return null;
+
+    return (
+        <main className="p-8 bg-slate-50 min-h-screen">
+            <div className="max-w-4xl mx-auto">
+                <div className="flex items-center gap-3 mb-8">
+                    <FolderTree className="text-blue-600" size={32} />
+                    <h1 className="text-3xl font-bold text-slate-800">Category Management</h1>
+                </div>
+
+                {/* --- FORM NHẬP LIỆU --- */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-400 uppercase">Tên danh mục</label>
+                            <input
+                                placeholder="VD: Đồ điện tử..."
+                                className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                value={formData.name}
+                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-400 uppercase">Mô tả ngắn</label>
+                            <input
+                                placeholder="Ghi chú thêm..."
+                                className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                value={formData.description}
+                                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-400 uppercase">Danh mục cha</label>
+                            <select
+                                className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+                                value={formData.parentId}
+                                onChange={e => setFormData({ ...formData, parentId: e.target.value })}
+                            >
+                                <option value="">(Không có)</option>
+                                {categories
+                                    .filter(c => c.CategoryId !== isEditing) // Không cho phép chọn chính mình làm cha
+                                    .map(cat => (
+                                        <option key={cat.CategoryId} value={cat.CategoryId}>{cat.name}</option>
+                                    ))
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 mt-6">
+                        <button 
+                            onClick={handleSave} 
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-blue-100"
+                        >
+                            {isEditing ? <Save size={18} /> : <Plus size={18} />}
+                            {isEditing ? "Cập nhật thay đổi" : "Tạo danh mục mới"}
+                        </button>
+                        
+                        {isEditing && (
+                            <button 
+                                onClick={() => { setIsEditing(null); setFormData({ name: '', description: '', parentId: '' }); }} 
+                                className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-2.5 rounded-xl font-bold transition-all"
+                            >
+                                <X size={18} /> Hủy sửa
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* --- BẢNG DANH SÁCH --- */}
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th className="p-4 text-xs font-black text-slate-400 uppercase tracking-wider">Tên danh mục</th>
+                                <th className="p-4 text-xs font-black text-slate-400 uppercase tracking-wider">Thuộc nhóm</th>
+                                <th className="p-4 text-xs font-black text-slate-400 uppercase tracking-wider">Mô tả</th>
+                                <th className="p-4 text-xs font-black text-slate-400 uppercase tracking-wider text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {categories.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="p-10 text-center text-slate-400 italic">Chưa có danh mục nào được tạo.</td>
+                                </tr>
+                            ) : (
+                                categories.map(cat => (
+                                    <tr key={cat.CategoryId} className="hover:bg-blue-50/20 transition-colors group">
+                                        <td className="p-4 font-bold text-slate-700">{cat.name}</td>
+                                        <td className="p-4">
+                                            {cat.parentId ? (
+                                                <span className="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-md font-medium">
+                                                    {categories.find(c => c.CategoryId === cat.parentId)?.name}
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-300 text-xs">—</span>
+                                            )}
+                                        </td>
+                                        <td className="p-4 text-slate-500 text-sm">{cat.description || "..."}</td>
+                                        <td className="p-4">
+                                            <div className="flex justify-center gap-2">
+                                                <button 
+                                                    onClick={() => {
+                                                        setIsEditing(cat.CategoryId);
+                                                        setFormData({ name: cat.name, description: cat.description, parentId: cat.parentId });
+                                                    }} 
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                >
+                                                    <Edit3 size={18} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDelete(cat.CategoryId)} 
+                                                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    );
+}
+
+================================================================================
+FILE PATH: app\components\TagTable.tsx
+================================================================================
+
+import React, { useState } from 'react';
+import { Trash2, Box, PlusCircle, CheckCircle } from 'lucide-react';
+import { Product } from '../utils/storage';
+
+interface Props {
+  tags: any[];
+  allProducts: Product[];
+  onDeleteOne: (epc: string) => void;
+  onImport: (epc: string, productId: string) => void;
+}
+
+export function TagTable({ tags, allProducts, onDeleteOne, onImport }: Props) {
+  const [selections, setSelections] = useState<Record<string, string>>({});
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+      <table className="w-full text-left border-collapse">
+        <thead className="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Product / EPC</th>
+            <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Antenna</th>
+            <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Quantity</th>
+            <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Warehouse Status</th>
+            <th className="p-4 text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100">
+          {tags.map((tag) => {
+            const isUnknown = tag.productId === "unknown";
+            
+            return (
+              <tr key={tag.epc} className="hover:bg-blue-50/20 transition-all group">
+                <td className="p-4">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isUnknown ? 'bg-amber-100 text-amber-600' : 'bg-blue-600 text-white shadow-lg shadow-blue-100'}`}>
+                      <Box size={20} />
+                    </div>
+                    <div>
+                      <div className={`font-black text-sm ${isUnknown ? 'text-amber-700 italic' : 'text-slate-800'}`}>
+                        {tag.productName}
+                      </div>
+                      <div className="text-[10px] font-mono text-slate-400 mt-0.5 tracking-tighter">
+                        Mã EPC: {tag.epc}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <td className="p-4 text-center">
+                   <span className="text-[10px] font-black bg-slate-800 text-white px-2 py-0.5 rounded-md">ANT {tag.antenna}</span>
+                </td>
+
+                <td className="p-4 text-center">
+                  <div className={`inline-flex flex-col items-center p-2 rounded-2xl border min-w-[65px] ${isUnknown ? 'bg-amber-50 border-amber-100' : 'bg-blue-50 border-blue-100'}`}>
+                    <div className={`text-2xl font-black leading-none ${isUnknown ? 'text-amber-600' : 'text-blue-700'}`}>
+                      {tag.totalItems || 1}
+                    </div>
+                    <div className={`text-[8px] font-black uppercase mt-1 ${isUnknown ? 'text-amber-400' : 'text-blue-400'}`}>
+                      {tag.unit || 'Items'}
+                    </div>
+                  </div>
+                </td>
+
+                <td className="p-4">
+                  {isUnknown ? (
+                    <div className="flex items-center gap-2">
+                      <select 
+                        className="text-[11px] p-2 border border-amber-200 rounded-xl bg-white outline-none focus:ring-2 focus:ring-amber-500 w-44 font-bold text-slate-600"
+                        value={selections[tag.epc] || ""}
+                        onChange={(e) => setSelections({...selections, [tag.epc]: e.target.value})}
+                      >
+                        <option value="">-- Assign product --</option>
+                        {allProducts.map(p => (
+                          <option key={p.ProductId} value={p.ProductId}>{p.name}</option>
+                        ))}
+                      </select>
+                      <button 
+                        onClick={() => onImport(tag.epc, selections[tag.epc])}
+                        disabled={!selections[tag.epc]}
+                        className="flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black px-3 py-2 rounded-xl transition-all disabled:opacity-30 shadow-md shadow-amber-100 uppercase"
+                      >
+                        <PlusCircle size={14} /> Import
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-emerald-600">
+                      <CheckCircle size={16} />
+                      <span className="text-[10px] font-black uppercase tracking-tighter">Data matched</span>
+                    </div>
+                  )}
+                </td>
+
+                <td className="p-4 text-center">
+                  <button 
+                    onClick={() => onDeleteOne(tag.epc)}
+                    className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+================================================================================
+FILE PATH: app\hooks\useSerialNation.ts
+================================================================================
+
+import { useState, useRef, useCallback } from 'react';
+import { buildNationFrame, NATION_CMD } from '../utils/nationProtocol';
+import { Storage, Tag } from '../utils/storage';
+
+export interface ScannedTag {
+  epc: string;
+  antenna: number;
+  productId?: string;
+  productName: string;
+  categoryName: string;
+  lastSeen: string;
+}
+
+export function useSerialNation() {
+  const [port, setPort] = useState<any>(null);
+  const [tags, setTags] = useState<Map<string, Tag>>(new Map());
+  const [isScanning, setIsScanning] = useState(false);
+  const [selectedAntennas, setSelectedAntennas] = useState<number[]>([1]);
+
+  const writerRef = useRef<WritableStreamDefaultWriter | null>(null);
+  const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
+
+  // --- 1. Logic chọn Antenna ---
+  const toggleAntenna = (id: number) => {
+    setSelectedAntennas(prev => 
+      prev.includes(id) 
+        ? prev.filter(a => a !== id) 
+        : [...prev, id].sort()
+    );
+  };
+
+  const parseTagData = useCallback((frame: number[]) => {
+    const mid = frame[4];
+    if (mid === 0x00) {
+      const dataPayload = frame.slice(7, frame.length - 2);
+      const epcLen = (dataPayload[0] << 8) | dataPayload[1];
+      const epc = dataPayload.slice(2, 2 + epcLen).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+      const antId = dataPayload[2 + epcLen + 2];
+      
+      const tagDb = Storage.getTags();       
+      const productDb = Storage.getProducts(); 
+      const catDb = Storage.getCategories();   
+      const registeredTag = tagDb.find(t => t.epc.toUpperCase() === epc);
+      
+      let pId = "unknown";
+      let productName = "Thẻ chưa khai báo";
+      let categoryName = "—";
+      let unit = "";
+
+      if (registeredTag) {
+          pId = registeredTag.productId;
+          const product = productDb.find(p => p.ProductId === pId);
+          if (product) {
+              productName = product.name;
+              unit = product.unit;
+              const cat = catDb.find(c => c.CategoryId === product.categoryId);
+              categoryName = cat ? cat.name : "Chưa phân loại";
+          }
+      }
+
+      const currentTime = new Date().toLocaleTimeString('vi-VN', { hour12: false });
+
+      setTags(prev => {
+        const newMap = new Map(prev);
+        newMap.set(epc, {
+          epc,
+          antenna: antId || 1,
+          count: (prev.get(epc)?.count || 0) + 1, // Số lần xung nhịp reader đọc trúng
+          firstSeen: prev.get(epc)?.firstSeen || currentTime,
+          lastSeen: currentTime,
+          productId: pId,
+          productName,
+          categoryName,
+          unit
+        });
+        return newMap;
+      });
+    }
+}, []);
+
+
+  const startReading = async (reader: any) => {
+    readerRef.current = reader;
+    let buffer: number[] = [];
+
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        
+        buffer.push(...Array.from(value as Uint8Array));
+
+        // Xử lý bộ đệm tìm Frame 0x5A
+        while (buffer.length >= 9) {
+          const headerIdx = buffer.indexOf(0x5A);
+          if (headerIdx === -1) { buffer = []; break; }
+          if (headerIdx > 0) buffer = buffer.slice(headerIdx);
+
+          if (buffer.length < 7) break;
+          const dataLen = (buffer[5] << 8) | buffer[6];
+          const totalFrameLen = 1 + 4 + 2 + dataLen + 2;
+
+          if (buffer.length < totalFrameLen) break;
+
+          const frame = buffer.slice(0, totalFrameLen);
+          buffer = buffer.slice(totalFrameLen);
+          
+          parseTagData(frame);
+        }
+      }
+    } catch (err) {
+      console.error("Lỗi đọc Serial:", err);
+    } finally {
+      reader.releaseLock();
+    }
+  };
+
+  const connect = async () => {
+    try {
+      const selectedPort = await (navigator as any).serial.requestPort();
+      await selectedPort.open({ baudRate: 115200 });
+      
+      setPort(selectedPort);
+      writerRef.current = selectedPort.writable.getWriter();
+      startReading(selectedPort.readable.getReader());
+    } catch (err) {
+      console.error("Lỗi kết nối:", err);
+      alert("Không thể kết nối cổng COM.");
+    }
+  };
+
+  const startScan = async () => {
+    if (!writerRef.current) return;
+    if (selectedAntennas.length === 0) {
+      alert("Hãy chọn ít nhất 1 Antenna");
+      return;
+    }
+
+    setTags(new Map()); 
+
+    // Tạo Bitmask cho Antenna
+    let mask = 0;
+    selectedAntennas.forEach(ant => {
+      mask |= (1 << (ant - 1));
+    });
+
+    // Payload: [Mask 4 bytes] + [Continuous Flag 1 byte]
+    const payload = [0x00, 0x00, 0x00, mask, 0x01]; 
+
+    const frame = buildNationFrame(
+      NATION_CMD.START_INVENTORY.cat, 
+      NATION_CMD.START_INVENTORY.mid, 
+      payload
+    );
+
+    await writerRef.current.write(frame);
+    setIsScanning(true);
+  };
+
+  const stopScan = async () => {
+    if (!writerRef.current) return;
+    
+    const frame = buildNationFrame(
+      NATION_CMD.STOP_INVENTORY.cat, 
+      NATION_CMD.STOP_INVENTORY.mid
+    );
+    
+    await writerRef.current.write(frame);
+    setIsScanning(false);
+  };
+
+  const deleteTag = (epc: string) => {
+    setTags(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(epc);
+      return newMap;
+    });
+  };
+
+  const clearTags = () => {
+    setTags(new Map());
+  };
+
+  return { 
+    port, 
+    tags, 
+    isScanning, 
+    selectedAntennas, 
+    connect, 
+    startScan, 
+    stopScan, 
+    toggleAntenna, 
+    deleteTag, 
+    clearTags 
+  };
+}
+
+================================================================================
+FILE PATH: app\products\page.tsx
+================================================================================
+
+"use client";
+import React, { useState, useEffect } from 'react';
+import { Storage, Product, Category } from '../utils/storage';
+import { Plus, Trash2, Edit3, Save, X, Package, Layers } from 'lucide-react';
+
+export default function ProductsPage() {
+    // --- STATE QUẢN LÝ ---
+    const [products, setProducts] = useState<Product[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [isEditing, setIsEditing] = useState<string | null>(null);
+    
+    const [formData, setFormData] = useState({ 
+        name: '', 
+        unit: '', 
+        categoryId: '' 
+    });
+
+    // --- LOAD DỮ LIỆU ---
+    useEffect(() => {
+        const productData = Storage.getProducts();
+        const categoryData = Storage.getCategories();
+        setProducts(productData);
+        setCategories(categoryData);
+        setIsLoaded(true);
+    }, []);
+
+    // --- XỬ LÝ LƯU (THÊM/SỬA) ---
+    const handleSave = () => {
+        if (!formData.name.trim()) {
+            alert("Vui lòng nhập Tên sản phẩm");
+            return;
+        }
+
+        let updatedList: Product[];
+
+        if (isEditing) {
+            // Cập nhật sản phẩm cũ
+            updatedList = products.map(p => 
+                p.ProductId === isEditing ? { ...p, ...formData } : p
+            );
+        } else {
+            // Tạo sản phẩm mới (SKU)
+            const newProd: Product = {
+                ProductId: crypto.randomUUID(), // Tạo ID duy nhất
+                name: formData.name,
+                unit: formData.unit,
+                categoryId: formData.categoryId
+            };
+            updatedList = [...products, newProd];
+        }
+
+        Storage.saveProducts(updatedList);
+        setProducts(updatedList);
+        resetForm();
+    };
+
+    // --- XỬ LÝ XÓA ---
+    const handleDelete = (id: string) => {
+        if (window.confirm("Xóa sản phẩm này sẽ làm mất liên kết với các thẻ (Tags) hiện có. Tiếp tục?")) {
+            const updatedList = products.filter(p => p.ProductId !== id);
+            Storage.saveProducts(updatedList);
+            setProducts(updatedList);
+        }
+    };
+
+    const resetForm = () => {
+        setFormData({ name: '', unit: '', categoryId: '' });
+        setIsEditing(null);
+    };
+
+    if (!isLoaded) return null;
+
+    return (
+        <main className="p-8 bg-slate-50 min-h-screen">
+            <div className="max-w-5xl mx-auto">
+                
+                {/* Tiêu đề trang */}
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="bg-blue-600 p-2 rounded-lg text-white">
+                        <Package size={24} />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-800">Product Management</h1>
+                    </div>
+                </div>
+
+                {/* --- FORM NHẬP LIỆU --- */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-wider">Tên sản phẩm</label>
+                            <input
+                                placeholder="VD: Nước suối Aquafina 500ml..."
+                                className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium"
+                                value={formData.name}
+                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                            />
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-wider">Đơn vị tính</label>
+                            <input
+                                placeholder="VD: Chai, Lon, Thùng..."
+                                className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                value={formData.unit}
+                                onChange={e => setFormData({ ...formData, unit: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-black text-slate-400 uppercase tracking-wider">Nhóm danh mục</label>
+                            <select
+                                className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+                                value={formData.categoryId}
+                                onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
+                            >
+                                <option value="">-- Chọn danh mục --</option>
+                                {categories.map(cat => (
+                                    <option key={cat.CategoryId} value={cat.CategoryId}>{cat.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 mt-6 pt-6 border-t border-slate-50">
+                        <button 
+                            onClick={handleSave} 
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-blue-100"
+                        >
+                            {isEditing ? <Save size={18} /> : <Plus size={18} />}
+                            {isEditing ? "Cập nhật sản phẩm" : "Đăng ký sản phẩm"}
+                        </button>
+                        
+                        {isEditing && (
+                            <button onClick={resetForm} className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 px-6 py-2.5 rounded-xl font-bold">
+                                <X size={18} /> Hủy bỏ
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {/* --- BẢNG DANH SÁCH --- */}
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th className="p-4 text-xs font-black text-slate-400 uppercase tracking-wider">Sản phẩm</th>
+                                <th className="p-4 text-xs font-black text-slate-400 uppercase tracking-wider text-center">ĐVT</th>
+                                <th className="p-4 text-xs font-black text-slate-400 uppercase tracking-wider">Danh mục</th>
+                                <th className="p-4 text-xs font-black text-slate-400 uppercase tracking-wider text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {products.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="p-20 text-center">
+                                        <div className="flex flex-col items-center gap-2 text-slate-300">
+                                            <Layers size={48} strokeWidth={1} />
+                                            <p className="italic text-sm">Chưa có sản phẩm nào được tạo.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : (
+                                products.map(p => (
+                                    <tr key={p.ProductId} className="hover:bg-blue-50/20 transition-colors group">
+                                        <td className="p-4">
+                                            <div className="font-bold text-slate-700">{p.name}</div>
+                                            <div className="text-[10px] text-slate-400 font-mono tracking-tight">{p.ProductId}</div>
+                                        </td>
+                                        <td className="p-4 text-center">
+                                            <span className="text-sm font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+                                                {p.unit || '—'}
+                                            </span>
+                                        </td>
+                                        <td className="p-4">
+                                            <span className="text-sm text-blue-600 font-medium bg-blue-50 px-2 py-1 rounded-md">
+                                                {categories.find(c => c.CategoryId === p.categoryId)?.name || 'Chưa phân loại'}
+                                            </span>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="flex justify-center gap-2">
+                                                <button 
+                                                    onClick={() => {
+                                                        setIsEditing(p.ProductId);
+                                                        setFormData({ 
+                                                            name: p.name, 
+                                                            unit: p.unit, 
+                                                            categoryId: p.categoryId 
+                                                        });
+                                                    }} 
+                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                    title="Sửa thông tin"
+                                                >
+                                                    <Edit3 size={18} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleDelete(p.ProductId)} 
+                                                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                                                    title="Xóa sản phẩm"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    );
+}
+
+================================================================================
+FILE PATH: app\tags\page.tsx
+================================================================================
+
+"use client";
+import React, { useState, useEffect } from 'react';
+import { Storage, Tag, Product } from '../utils/storage';
+import { Trash2, Edit3, Save, X, Tag as TagIcon, Fingerprint } from 'lucide-react';
+
+export default function TagsPage() {
+    const [tags, setTags] = useState<Tag[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const [isEditing, setIsEditing] = useState<string | null>(null);
+
+    const [formData, setFormData] = useState({
+        epc: '', tid: '', status: 'Active', type: 'UHF', productId: ''
+    });
+
+    useEffect(() => {
+        setTags(Storage.getTags());
+        setProducts(Storage.getProducts());
+        setIsLoaded(true);
+    }, []);
+
+    const handleSave = () => {
+        if (!formData.epc.trim()) {
+            alert("Mã EPC là bắt buộc");
+            return;
+        }
+
+        let updatedList: Tag[];
+        const currentEpc = formData.epc.toUpperCase();
+
+        if (isEditing) {
+            updatedList = tags.map(t => 
+                t.epc === isEditing ? { ...formData, epc: currentEpc } : t
+            );
+        } else {
+            if (tags.some(t => t.epc === currentEpc)) {
+                alert("Mã EPC này đã tồn tại trong hệ thống");
+                return;
+            }
+            updatedList = [...tags, { ...formData, epc: currentEpc }];
+        }
+
+        Storage.saveTags(updatedList);
+        setTags(updatedList);
+        resetForm();
+    };
+
+    const handleDelete = (epc: string) => {
+        if (window.confirm(`Xóa thẻ có mã EPC: ${epc}?`)) {
+            const updatedList = tags.filter(t => t.epc !== epc);
+            Storage.saveTags(updatedList);
+            setTags(updatedList);
+        }
+    };
+
+    const resetForm = () => {
+        setFormData({ epc: '', tid: '', status: 'Active', type: 'UHF', productId: '' });
+        setIsEditing(null);
+    };
+
+    if (!isLoaded) return null;
+
+    return (
+        <main className="p-8 bg-slate-50 min-h-screen">
+            <div className="max-w-6xl mx-auto">
+                <div className="flex items-center gap-3 mb-8">
+                    <TagIcon className="text-blue-600" size={32} />
+                    <h1 className="text-3xl font-bold text-slate-800">Tag Management</h1>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-400 uppercase">EPC</label>
+                            <input
+                                placeholder="E280..."
+                                className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono text-sm"
+                                value={formData.epc}
+                                onChange={e => setFormData({ ...formData, epc: e.target.value.toUpperCase() })}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-400 uppercase">TID</label>
+                            <div className="relative">
+                                <input
+                                    placeholder="E200..."
+                                    className="w-full p-2.5 pl-10 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono text-sm"
+                                    value={formData.tid}
+                                    onChange={e => setFormData({ ...formData, tid: e.target.value.toUpperCase() })}
+                                />
+                                <Fingerprint className="absolute left-3 top-3 text-slate-400" size={16} />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-400 uppercase">Gán cho Sản phẩm</label>
+                            <select
+                                className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+                                value={formData.productId}
+                                onChange={e => setFormData({ ...formData, productId: e.target.value })}
+                            >
+                                <option value="">Chọn sản phẩm mẫu...</option>
+                                {products.map(p => <option key={p.ProductId} value={p.ProductId}>{p.name}</option>)}
+                            </select>
+
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-400 uppercase">Trạng thái</label>
+                            <select
+                                className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+                                value={formData.status}
+                                onChange={e => setFormData({ ...formData, status: e.target.value })}
+                            >
+                                <option value="Active">Đang hoạt động (Active)</option>
+                                <option value="Inactive">Ngừng hoạt động (Inactive)</option>
+                                <option value="Damaged">Đã hỏng (Damaged)</option>
+                            </select>
+
+                            <input 
+                                value={formData.epc}
+                                onChange={e => setFormData({...formData, epc: e.target.value.toUpperCase()})}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-400 uppercase">Loại thẻ</label>
+                            <select
+                                className="w-full p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+                                value={formData.type}
+                                onChange={e => setFormData({ ...formData, type: e.target.value })}
+                            >
+                                <option value="UHF">Siêu cao tần (UHF)</option>
+                                <option value="HF">Cao tần (HF/NFC)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 mt-6">
+                        <button onClick={handleSave} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg">
+                            {isEditing ? <Save size={18} /> : <TagIcon size={18} />}
+                            {isEditing ? "Cập nhật Tag" : "Đăng ký Tag"}
+                        </button>
+                        {isEditing && (
+                            <button onClick={resetForm} className="flex items-center gap-2 bg-slate-100 px-6 py-2.5 rounded-xl font-bold">
+                                <X size={18} /> Hủy
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th className="p-4 text-xs font-black text-slate-400 uppercase tracking-wider">EPC / TID</th>
+                                <th className="p-4 text-xs font-black text-slate-400 uppercase tracking-wider">Product</th>
+                                <th className="p-4 text-xs font-black text-slate-400 uppercase tracking-wider">Loại / Trạng thái</th>
+                                <th className="p-4 text-xs font-black text-slate-400 uppercase tracking-wider text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {tags.length === 0 ? (
+                                <tr><td colSpan={4} className="p-10 text-center text-slate-400 italic">Chưa có Tag nào được khai báo.</td></tr>
+                            ) : (
+                                tags.map(t => (
+                                    <tr key={t.epc} className="hover:bg-blue-50/20 transition-colors">
+                                        <td className="p-4">
+                                            <div className="font-mono text-sm font-bold text-blue-700">{t.epc}</div>
+                                            <div className="font-mono text-[10px] text-slate-400">{t.tid || 'No TID'}</div>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="text-sm font-medium text-slate-700">
+                                                {products.find(p => p.ProductId === t.productId)?.name || '—'}
+                                            </div>
+                                            <div className="text-[10px] text-slate-400 italic">
+                                                {products.find(p => p.ProductId === t.productId)?.unit || ''}
+                                            </div>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-[10px] font-bold text-slate-400">{t.type}</span>
+                                                <span className={`w-fit px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                                                    t.status === 'Active' ? 'bg-green-100 text-green-700' : 
+                                                    t.status === 'Inactive' ? 'bg-slate-100 text-slate-600' : 'bg-red-100 text-red-700'
+                                                }`}>
+                                                    {t.status}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td className="p-4">
+                                            <div className="flex justify-center gap-2">
+                                                <button onClick={() => {
+                                                    setIsEditing(t.epc);
+                                                    setFormData(t);
+                                                }} className="p-2 text-slate-400 hover:text-blue-600"><Edit3 size={18} /></button>
+                                                <button onClick={() => handleDelete(t.epc)} className="p-2 text-slate-400 hover:text-rose-600"><Trash2 size={18} /></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    );
+}
+
+================================================================================
+FILE PATH: app\utils\nationProtocol.ts
+================================================================================
+
+export function crc16_ccitt(data: number[]): number {
+  let crc = 0x0000;
+  for (const byte of data) {
+    crc ^= byte << 8;
+    for (let i = 0; i < 8; i++) {
+      if (crc & 0x8000) {
+        crc = ((crc << 1) ^ 0x1021) & 0xffff;
+      } else {
+        crc = (crc << 1) & 0xffff;
+      }
+    }
+  }
+  return crc;
+}
+
+export function hexToBytes(hex: string): number[] {
+  const bytes = [];
+  for (let c = 0; c < hex.length; c += 2) {
+    bytes.push(parseInt(hex.substr(c, 2), 16));
+  }
+  return bytes;
+}
+
+
+export function buildNationFrame(category: number, mid: number, data: number[] = []): Uint8Array {
+  const header = 0x5a;
+  
+  const pcw = [0x00, 0x01, category, mid];
+  const dataLen = [(data.length >> 8) & 0xff, data.length & 0xff];
+  
+  const contentToCrc = [...pcw, ...dataLen, ...data];
+  const crc = crc16_ccitt(contentToCrc);
+  const crcBytes = [(crc >> 8) & 0xff, crc & 0xff];
+
+  return new Uint8Array([header, ...contentToCrc, ...crcBytes]);
+}
+
+export const NATION_CMD = {
+  START_INVENTORY: { cat: 0x02, mid: 0x10 }, 
+  STOP_INVENTORY: { cat: 0x02, mid: 0xff },
+  WRITE_EPC_TAG: { cat: 0x02, mid: 0x11 }, 
+};
+
+================================================================================
+FILE PATH: app\utils\storage.ts
+================================================================================
+
+export interface Category {
+    CategoryId: string;
+    name: string;
+    description: string;
+    parentId: string;
+}
+
+export interface Product {
+    ProductId: string;
+    name: string;
+    unit: string;
+    categoryId: string;
+}
+
+export interface Tag {
+    epc: string;
+    tid: string;
+    status: string;
+    type: string;
+    productId: string;
+}
+
+const KEYS = {
+    CAT: 'rfid_cat',
+    PROD: 'rfid_prod',
+    TAG: 'rfid_tag_db'
+};
+
+export const Storage = {
+    // --- CATEGORIES ---
+    getCategories: () => {
+        if (typeof window === 'undefined') return [];
+        return JSON.parse(localStorage.getItem(KEYS.CAT) || '[]') as Category[];
+    },
+    saveCategories: (d: Category[]) => localStorage.setItem(KEYS.CAT, JSON.stringify(d)),
+
+    // --- PRODUCTS ---
+    getProducts: () => {
+        if (typeof window === 'undefined') return [];
+        return JSON.parse(localStorage.getItem(KEYS.PROD) || '[]') as Product[];
+    },
+    saveProducts: (d: Product[]) => localStorage.setItem(KEYS.PROD, JSON.stringify(d)),
+
+    // --- TAGS (LIÊN KẾT EPC - PRODUCT) ---
+    getTags: () => {
+        if (typeof window === 'undefined') return [];
+        return JSON.parse(localStorage.getItem(KEYS.TAG) || '[]') as Tag[];
+    },
+    saveTags: (d: Tag[]) => localStorage.setItem(KEYS.TAG, JSON.stringify(d)),
+
+    // Hàm gán nhanh EPC vào Sản phẩm từ màn hình Scan
+    addTag: (epc: string, productId: string) => {
+        const tags = Storage.getTags();
+        if (!tags.some(t => t.epc === epc)) {
+            tags.push({
+                epc: epc,
+                productId: productId,
+                tid: '',
+                status: 'Active',
+                type: 'UHF'
+            });
+            Storage.saveTags(tags);
+        }
+    },  
+
+    autoAddTag: (epc: string, productId: string): boolean => {
+        const tags = JSON.parse(localStorage.getItem('rfid_tag_db') || '[]') as Tag[];
+        if (!tags.some(t => t.epc === epc)) {
+            tags.push({
+                epc: epc,
+                productId: productId,
+                tid: '',
+                status: 'Active',
+                type: 'UHF'
+            });
+            localStorage.setItem('rfid_tag_db', JSON.stringify(tags));
+            return true; 
+        }
+        return false; 
+    }
+};
